@@ -1,6 +1,0 @@
-runtime: nodejs16
-
-env_variables:
-  PORT: 8080
-  PROJECT_ID: "capstone-ch2-ps514"
-  PATH_KEY: "./src/api/keys/Firestore.json"
