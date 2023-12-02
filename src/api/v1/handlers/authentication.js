@@ -4,33 +4,57 @@ const genDocId = require('../helpers/genDocId.js');
 const { passCheck } = require('../helpers/hashpassword.js');
 const jwt = require('jsonwebtoken');
 
+/**
+ * @constant users define initiation of users collection database 
+ * @constant tokens define initiation of tokens collection database
+ */
+const users = fs_databases.collection('users');
+const tokens = fs_databases.collection('tokens');
+
 async function Register(req, res) {
   const documentId = genDocId();
   /* VERIFY THE EMAIL AND USERNAME MUST BE UNIQUE */
-  const userData = new Users(req.body); // class Users
-  const resultData = userData.addUser();
-  /* select users collection database and set data to add document */
-  const store = await fs_databases.collection('users').doc(documentId).set(resultData);
-  /*
-    verify that data has been stored properly
-  */
-  console.info(store._writeTime);
-  if ('_writeTime' in store) {
-    res.status(201)
+  const emailUniqueCheck = await users.where('email', '==', req.body.email).get();
+  /**
+   * @property represents that the data query results are empty.
+   * This aim to validate that one email can only be used for one account.
+   */
+  if (emailUniqueCheck.empty == true) {
+    /**
+     * @class Users
+     */
+    const userData = new Users(req.body);
+    const resultData = userData.addUser();
+    /* select users collection database and set data to add document */
+    const store = await fs_databases.collection('users').doc(documentId).set(resultData);
+    /*
+      verify that data has been stored properly
+    */
+    if ('_writeTime' in store) {
+      res.status(201)
+        .append('X-Powered-By', 'Biger x Barjakoub')
+        .json({
+          message: 'account created',
+          error: false,
+          store,
+        });
+    } else { // failed store to database
+      res.status(417)
+        .append('X-Powered-By', 'Biger x Barjakoub')
+        .json({
+          message: 'fail to created account, try again in a few minutes',
+          error: true,
+          store
+        });
+    }
+  } else {
+    res.status(400)
       .append('X-Powered-By', 'Biger x Barjakoub')
       .json({
-        message: 'account created',
-        error: false,
-        store,
-      });
-  } else { // failed store to database
-    res.status(417)
-      .append('X-Powered-By', 'Biger x Barjakoub')
-      .json({
-        message: 'fail to created account, try again in a few minutes',
+        message: 'your email has been used, please use a different email',
         error: true,
-        store
-      });
+        store: null
+      })
   }
 }
 
@@ -45,10 +69,8 @@ async function Login(req, res) {
         error: true
       });
   }
-  /* select users collection of database */
-  const user = fs_databases.collection('users');
   /* getting data from database using user email in request */
-  const find = await user.where('email', '==', email).get();
+  const find = await users.where('email', '==', email).get();
   /* check if data exist */
   if (find._size == 1) {
     let userData;
@@ -58,6 +80,16 @@ async function Login(req, res) {
       userData = doc.data();
       documentId = doc.id;
     });
+    /* check user logged in data */
+    if (userData.isLoggedIn == true) {
+      return res.status(400)
+        .append('X-Powered-By', 'Biger x Barjakoub')
+        .json({
+          success: false,
+          message: 'your account already logged in on another device',
+          token: null
+        });
+    }
     /* checking user password match with hashed user password */
     if (passCheck(password, userData.password) === true) {
       /*
@@ -65,8 +97,9 @@ async function Login(req, res) {
       */
       const token = jwt.sign(
         {
-          user_id: userData.user_data,
-          email: userData.email
+          documentId: documentId,
+          user_id: userData.user_id,
+          email: userData.email,
         },
         'ch2-ps514',
         {
@@ -76,18 +109,24 @@ async function Login(req, res) {
       /* 
         store token with user document ID or reference path
       */
-      const storeToken = await fs_databases.collection('tokens').add({
+      const storeToken = await tokens.add({
         token
       });
       /* property of id indicate that data stored successfully in database */
       if ('id' in storeToken) {
-        console.info(storeToken.id);
+        /**
+         * @property isLoggedIn update to true
+         */
+        await users.doc(documentId).update({
+          dateUpdated: new Date().toLocaleString(),
+          isLoggedIn: true
+        });
         res.status(200)
           .append('X-Powered-By', 'Biger x Barjakoub')
           .json({
             success: true,
             message: "login successful",
-            token: token,
+            token: token
           });
       } else { // while fail storing token to database
         res.status(417)
@@ -118,4 +157,44 @@ async function Login(req, res) {
   }
 }
 
-module.exports = { Register, Login };
+async function Logout(req, res) {
+  const token = req.get('Authorization').substring(7);
+  try {
+    const decoded = jwt.verify(token, 'ch2-ps514');
+    console.info(decoded);
+    await users.doc(decoded.documentId).update({
+      dateUpdated: new Date().toLocaleString(),
+      isLoggedIn: false
+    });
+    const findToken = await tokens.where('token', '==', token).get();
+    if (findToken._size == 1) {
+      findToken.forEach(async doc => {
+        console.info(doc.id);
+        await tokens.doc(doc.id).delete();
+      });
+    } else {
+      return res.json({
+        success: false,
+        message: 'cannot delete. user token not found',
+        logged_status: true
+      });
+    }
+    res.status(200)
+      .append('X-Powered-By', 'Biger x Barjakoub')
+      .json({
+        success: true,
+        message: 'logout success!',
+        logged_status: false
+      });
+  } catch (error) {
+    res.status(400)
+      .append('X-Powered-By', 'Biger x Barjakoub')
+      .json({
+        success: false,
+        message: error,
+        logged_status: true
+      })
+  }
+}
+
+module.exports = { Register, Login, Logout };

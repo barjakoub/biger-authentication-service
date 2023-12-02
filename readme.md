@@ -1,5 +1,6 @@
-## Biger Authentication Service
-This authentication service built by using Node.js Runtime with Express.js. To use this service just do the following steps.
+## Biger Authentication Service | Bangkit Academy 2023 Batch 2
+#### Capstone Team ID : CH2-PS514
+This authentication service was built using Node.js Runtime with Express.js and already deployed using Google App Engine Standard. To use this service just do the following steps.
 
 ### Register
 > URL : https://capstone-ch2-ps514.et.r.appspot.com/api/v1/register
@@ -56,6 +57,49 @@ This authentication service built by using Node.js Runtime with Express.js. To u
   If **`email`** and **`password`** matches users collection database, the response always send **`token`** filled with value. But, if user data doesn't match users collection database, the **`success`** always `false` and return null **`token`** value.
 
 ### Logout
-> URL : AVAILABLE SOON
+> URL : https://capstone-ch2-ps514.et.r.appspot.com/api/v1/logout
 
-This feature may available soon, the **Logout** feature will delete user token from database and change user **`logged`** status to `false`. This is the best way to prevent user using same account in multiple devices.
+- Method
+
+  /POST
+- Request Body
+
+  > { }
+- Headers
+
+  > **`Authorization: `** Bearer `<token_authorization>`
+- Response
+
+  ```json
+  {
+    "success": true,
+    "message": "logout success!",
+    "logged_status": false
+  }
+  ```
+
+  But, if the authorization token invalid or there is something wrong with the token. The system will not be able to verify the token credentials and will return the following response.
+
+  ```json
+  {
+    "success": false,
+    "message": "cannot delete. user token not found",
+    "logged_status": true
+  }
+  ```
+
+  OR
+  ```json
+  {
+    "success": false,
+    "message": {
+        "name": "JsonWebTokenError",
+        "message": "invalid signature"
+    },
+    "logged_status": true
+  }
+  ```
+  > **NOTE :** The `logged_status` value always evaluates to `true` when logging out fails.
+
+
+The **Logout** feature will delete user token from database and change user **`logged`** status to `false`. This is the best way to prevent user using same account in multiple devices.

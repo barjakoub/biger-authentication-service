@@ -28,7 +28,8 @@ app.get('/', (req, res) => {
   res.append('X-Powered-By', 'https://github.com/barjakoub?tab=repositories')
     .json({
       status: "OK",
-      message: "the art of lying, that's about it",
+      message: "Welcome to Biger!",
+      team_id: "CH2-PS514"
     });
 });
 /* using authentication route v1 */

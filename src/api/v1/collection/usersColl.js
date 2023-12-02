@@ -5,12 +5,13 @@ class Users {
   constructor(userData) {
     const prefixUserId = 'biger';
     const uniqueId = nanoid.customAlphabet('zxcvbnmasdfghjklqwertyuiopZXCVBNMASDFGHJKLQWERTYUIOP1234567890', 11);
-    this.userId = prefixUserId + uniqueId;
+    this.userId = prefixUserId + uniqueId();
     this.username = userData.username;
     this.email = userData.email;
     this.password = userPassHash(userData.password);
     this.dateCreated = new Date().toLocaleString();
     this.dateUpdated = new Date().toLocaleString();
+    this.isLoggedIn = false; // ADD LOGGED STATUS
   }
 
   addUser() {
@@ -20,7 +21,8 @@ class Users {
       email: this.email,
       password: this.password,
       dateCreated: this.dateCreated,
-      dateUpdated: this.dateUpdated
+      dateUpdated: this.dateUpdated,
+      isLoggedIn: this.isLoggedIn
     }
   }
 }
