@@ -50,7 +50,17 @@ This authentication service was built using Node.js Runtime with Express.js and 
   {
     "success": true,
     "message": "login successful",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRlcGxveWVkQGFwcGVuZ2luZS5jby5pZCIsImlhdCI6MTcwMTE3NDY1NX0.4UKiIQn54kIH8vuHWPj3bvsmR9mO8ReyAUbHKQp-1og"
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRlcGxveWVkQGFwcGVuZ2luZS5jby5pZCIsImlhdCI6MTcwMTE3NDY1NX0.4UKiIQn54kIH8vuHWPj3bvsmR9mO8ReyAUbHKQp-1og",
+    "user_detail": {
+        "user_id": "bigerXZJyxC7eqJM",
+        "username": "fatkhur.err",
+        "email": "fatkhurawe@gmail.com",
+        "dateCreated": "12/2/2023, 9:31:22 AM",
+        "dateUpdated": {
+            "_seconds": 1701510796,
+            "_nanoseconds": 510000000
+        }
+    }
   }
   ```
 

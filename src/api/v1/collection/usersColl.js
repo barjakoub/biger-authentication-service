@@ -1,3 +1,4 @@
+const { FieldValue } = require('@google-cloud/firestore');
 const { userPassHash } = require('../helpers/hashpassword.js');
 const nanoid = require('nanoid');
 
@@ -9,8 +10,9 @@ class Users {
     this.username = userData.username;
     this.email = userData.email;
     this.password = userPassHash(userData.password);
-    this.dateCreated = new Date().toLocaleString();
-    this.dateUpdated = new Date().toLocaleString();
+    // guide from Firestore Documentation
+    this.dateCreated = FieldValue.serverTimestamp();
+    this.dateUpdated = FieldValue.serverTimestamp();
     this.isLoggedIn = false; // ADD LOGGED STATUS
   }
 

@@ -3,6 +3,7 @@ const fs_databases = require('../../keys/FS_init.js');
 const genDocId = require('../helpers/genDocId.js');
 const { passCheck } = require('../helpers/hashpassword.js');
 const jwt = require('jsonwebtoken');
+const { FieldValue } = require('@google-cloud/firestore');
 
 /**
  * @constant users define initiation of users collection database 
@@ -118,7 +119,7 @@ async function Login(req, res) {
          * @property isLoggedIn update to true
          */
         await users.doc(documentId).update({
-          dateUpdated: new Date().toLocaleString(),
+          dateUpdated: FieldValue.serverTimestamp(),
           isLoggedIn: true
         });
         res.status(200)
@@ -126,7 +127,14 @@ async function Login(req, res) {
           .json({
             success: true,
             message: "login successful",
-            token: token
+            token: token,
+            user_detail: {
+              user_id: userData.user_id,
+              username: userData.username,
+              email,
+              dateCreated: userData.dateCreated,
+              dateUpdated: userData.dateUpdated
+            }
           });
       } else { // while fail storing token to database
         res.status(417)
@@ -163,7 +171,8 @@ async function Logout(req, res) {
     const decoded = jwt.verify(token, 'ch2-ps514');
     console.info(decoded);
     await users.doc(decoded.documentId).update({
-      dateUpdated: new Date().toLocaleString(),
+      // guide from Firestore Documentation
+      dateUpdated: FieldValue.serverTimestamp(),
       isLoggedIn: false
     });
     const findToken = await tokens.where('token', '==', token).get();
@@ -173,11 +182,13 @@ async function Logout(req, res) {
         await tokens.doc(doc.id).delete();
       });
     } else {
-      return res.json({
-        success: false,
-        message: 'cannot delete. user token not found',
-        logged_status: true
-      });
+      return res.status(200)
+        .append('X-Powered-By', 'Biger x Barjakoub')
+        .json({
+          success: false,
+          message: 'cannot delete. user token not found',
+          logged_status: true
+        });
     }
     res.status(200)
       .append('X-Powered-By', 'Biger x Barjakoub')
